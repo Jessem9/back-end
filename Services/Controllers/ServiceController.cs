@@ -23,11 +23,13 @@ namespace Services.Controllers
             var services = await _context.Services
                 .Select(s => new ServiceDto
                 {
+                    Id = s.Id,
                     Titre = s.Titre,
                     Description = s.Description,
                     PrestataireId = s.PrestataireId,
                     SousCategorieId = s.SousCategorieId,
-                    ReserveParId = s.ReserveParId
+                    ReserveParId = s.ReserveParId,
+                    Image = s.Image,
                 })
                 .ToListAsync();
 
@@ -47,11 +49,13 @@ namespace Services.Controllers
 
             var serviceDto = new ServiceDto
             {
+                Id = service.Id,
                 Titre = service.Titre,
                 Description = service.Description,
                 PrestataireId = service.PrestataireId,
                 SousCategorieId = service.SousCategorieId,
-                ReserveParId = service.ReserveParId
+                ReserveParId = service.ReserveParId,
+                Image = service.Image,
             };
 
             return serviceDto;
@@ -63,11 +67,13 @@ namespace Services.Controllers
         {
             var service = new Service
             {
+                Id = serviceDto.Id,
                 Titre = serviceDto.Titre,
                 Description = serviceDto.Description,
                 PrestataireId = serviceDto.PrestataireId,
                 SousCategorieId = serviceDto.SousCategorieId,
-                ReserveParId = serviceDto.ReserveParId
+                ReserveParId = serviceDto.ReserveParId,
+                Image = serviceDto.Image,
             };
 
             _context.Services.Add(service);
@@ -86,12 +92,13 @@ namespace Services.Controllers
             {
                 return NotFound();
             }
-
+            service.Id = serviceDto.Id;  
             service.Titre = serviceDto.Titre;
             service.Description = serviceDto.Description;
             service.PrestataireId = serviceDto.PrestataireId;
             service.SousCategorieId = serviceDto.SousCategorieId;
             service.ReserveParId = serviceDto.ReserveParId;
+            service.Image = serviceDto.Image;
 
             await _context.SaveChangesAsync();
 

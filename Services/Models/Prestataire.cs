@@ -3,9 +3,14 @@
     public class Prestataire
     {
         public int Id { get; set; }
-        public int ProfileProId { get; set; }
-        public ProfilPro ProfilePro { get; set; }  // Navigation property
 
-        public string Image { get; set; }  // Image path or URL
+        // Foreign key to Demandeur
+        public int DemandeurId { get; set; }
+        public Demandeur Demandeur { get; set; }
+
+        public int ProfileProId { get; set; }
+
+        // You can optionally duplicate image if needed, or use Demandeur.Image
+        // public string Image => Demandeur?.Image;
     }
 }

@@ -16,68 +16,69 @@ namespace Services.Controllers
             _context = context;
         }
 
-        // GET: api/Prestataire
+        // GET: api/Prestataires
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PrestataireDto>>> GetPrestataires()
         {
-            var prestataires = await _context.Prestataires.ToListAsync();
+            var prestataires = await _context.Prestataires
+                .Include(p => p.Demandeur)
+                .ToListAsync();
 
-            // Map entities to DTOs
             var prestataireDtos = prestataires.Select(p => new PrestataireDto
             {
                 Id = p.Id,
                 ProfileProId = p.ProfileProId,
-                Image = p.Image
+                DemandeurId = p.DemandeurId,
+                Email = p.Demandeur.Email,
+                Image = p.Demandeur.Image
             }).ToList();
 
             return prestataireDtos;
         }
 
-
-        // GET: api/Prestataire/{id}
+        // GET: api/Prestataires/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<PrestataireDto>> GetPrestataire(int id)
         {
-            var prestataire = await _context.Prestataires.FindAsync(id);
+            var prestataire = await _context.Prestataires
+                .Include(p => p.Demandeur)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (prestataire == null)
-            {
                 return NotFound();
-            }
 
-            // Map entity to DTO
             var prestataireDto = new PrestataireDto
             {
                 Id = prestataire.Id,
                 ProfileProId = prestataire.ProfileProId,
-                Image = prestataire.Image
+                DemandeurId = prestataire.DemandeurId,
+                Email = prestataire.Demandeur.Email,
+                Image = prestataire.Demandeur.Image
             };
 
             return prestataireDto;
         }
 
-
-        // PUT: api/Prestataire/{id}
+        // PUT: api/Prestataires/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPrestataire(int id, PrestataireDto prestataireDto)
+        public async Task<IActionResult> PutPrestataire(int id, PrestataireDto dto)
         {
-            if (id != prestataireDto.Id)
-            {
+            if (id != dto.Id)
                 return BadRequest("ID mismatch.");
-            }
 
-            // Find the existing entity
-            var prestataire = await _context.Prestataires.FindAsync(id);
+            var prestataire = await _context.Prestataires
+                .Include(p => p.Demandeur)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (prestataire == null)
-            {
                 return NotFound();
-            }
 
-            // Update properties
-            prestataire.Image = prestataireDto.Image;
+            // Update only the allowed fields
+            prestataire.ProfileProId = dto.ProfileProId;
+            prestataire.Demandeur.Image = dto.Image;
 
             _context.Entry(prestataire).State = EntityState.Modified;
+            _context.Entry(prestataire.Demandeur).State = EntityState.Modified;
 
             try
             {
@@ -86,54 +87,48 @@ namespace Services.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!PrestataireExists(id))
-                {
                     return NotFound();
-                }
                 else
-                {
                     throw;
-                }
             }
 
             return NoContent();
         }
 
-
+        // POST: api/Prestataires
         [HttpPost]
-        public async Task<ActionResult<Prestataire>> PostPrestataire(PrestataireDto prestataireDto)
+        public async Task<ActionResult<Prestataire>> PostPrestataire(PrestataireDto dto)
         {
-            // Mapping DTO to entity
+            // Ensure Demandeur exists
+            var demandeur = await _context.Demandeurs.FindAsync(dto.DemandeurId);
+            if (demandeur == null)
+                return BadRequest("Demandeur not found.");
+
             var prestataire = new Prestataire
             {
-                ProfileProId = prestataireDto.ProfileProId,
-                Image = prestataireDto.Image
+                ProfileProId = dto.ProfileProId,
+                DemandeurId = dto.DemandeurId
             };
 
-            // Add to the context
             _context.Prestataires.Add(prestataire);
             await _context.SaveChangesAsync();
 
-            // Return the created entity with a location header pointing to the newly created resource
-            return CreatedAtAction("GetPrestataire", new { id = prestataire.Id }, prestataire);
+            return CreatedAtAction(nameof(GetPrestataire), new { id = prestataire.Id }, prestataire);
         }
 
-
-        // DELETE: api/Prestataire/{id}
+        // DELETE: api/Prestataires/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePrestataire(int id)
         {
             var prestataire = await _context.Prestataires.FindAsync(id);
             if (prestataire == null)
-            {
                 return NotFound();
-            }
 
             _context.Prestataires.Remove(prestataire);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
-
 
         private bool PrestataireExists(int id)
         {

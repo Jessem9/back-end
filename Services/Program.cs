@@ -22,6 +22,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
+builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("Jwt"));
 
 var app = builder.Build();
 
